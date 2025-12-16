@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creator Army Unit Economics Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+            color: #f1f5f9;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #1e293b;
+        }
+        
+        .tab-btn {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .tab-btn.active {
+            color: #60a5fa;
+            border-bottom-color: #60a5fa;
+        }
+        
+        .tab-btn:hover {
+            color: #cbd5e1;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .calculator-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .input-section, .output-section {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 24px;
+        }
+        
+        .input-section h2, .output-section h2 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #f1f5f9;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            font-size: 14px;
+            color: #cbd5e1;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        input[type="number"], input[type="range"] {
+            width: 100%;
+            padding: 10px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 4px;
+            color: #e2e8f0;
+            font-size: 14px;
+        }
+        
+        input[type="number"]:focus, input[type="range"]:focus {
+            outline: none;
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+        }
+        
+        .range-display {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .range-value {
+            background: #0f172a;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: #60a5fa;
+            min-width: 80px;
+            text-align: right;
+        }
+        
+        .toggle-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .toggle-btn {
+            flex: 1;
+            padding: 10px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 4px;
+            color: #cbd5e1;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .toggle-btn.active {
+            background: #60a5fa;
+            border-color: #60a5fa;
+            color: #fff;
+        }
+        
+        .toggle-btn:hover {
+            border-color: #60a5fa;
+        }
+        
+        .greyed-out {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        
+        .metric {
+            background: #0f172a;
+            padding: 16px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            border-left: 3px solid #60a5fa;
+        }
+        
+        .metric-label {
+            font-size: 13px;
+            color: #94a3b8;
+            margin-bottom: 4px;
+        }
+        
+        .metric-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+        
+        .metric-subtext {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+        
+        .metric.positive {
+            border-left-color: #10b981;
+        }
+        
+        .metric.positive .metric-value {
+            color: #10b981;
+        }
+        
+        .metric.negative {
+            border-left-color: #ef4444;
+        }
+        
+        .metric.negative .metric-value {
+            color: #ef4444;
+        }
+        
+        .metric.neutral {
+            border-left-color: #f59e0b;
+        }
+        
+        .metric.neutral .metric-value {
+            color: #f59e0b;
+        }
+        
+        .chart-container {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 30px;
+        }
+        
+        .chart-container h3 {
+            margin-bottom: 20px;
+            color: #f1f5f9;
+        }
+        
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .monthly-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 30px;
+            font-size: 11px;
+        }
+        
+        .monthly-table th {
+            background: #0f172a;
+            padding: 8px;
+            text-align: left;
+            font-weight: 600;
+            color: #cbd5e1;
+            border-bottom: 1px solid #334155;
+        }
+        
+        .monthly-table td {
+            padding: 8px;
+            border-bottom: 1px solid #334155;
+            color: #e2e8f0;
+        }
+        
+        .monthly-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .monthly-table tr:hover {
+            background: #334155;
+        }
+        
+        .profit-positive {
+            color: #10b981;
+            font-weight: 600;
+        }
+        
+        .profit-negative {
+            color: #ef4444;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Creator Army: Unit Economics Calculator</h1>
+        
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('b2c')">B2C (Creators)</button>
+            <button class="tab-btn" onclick="switchTab('b2b')">B2B (Brands)</button>
+            <button class="tab-btn" onclick="switchTab('blended')">Blended Analysis</button>
+        </div>
+        
+        <!-- B2C TAB -->
+        <div id="b2c" class="tab-content active">
+            <div class="calculator-grid">
+                <div class="input-section">
+                    <h2>B2C Creator Inputs</h2>
+                    
+                    <div class="input-group">
+                        <label>Entry Fee ($)</label>
+                        <input type="number" id="b2c_entry_fee" value="499" step="50" oninput="calculateB2C(); calculateBlended();">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>CAC - Creator Acquisition ($)</label>
+                        <input type="number" id="b2c_cac" value="449.10" step="10" oninput="calculateB2C(); calculateBlended();">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Marketplace Clip - Creator (%)</label>
+                        <div class="range-display">
+                            <input type="range" id="b2c_clip_pct" min="0" max="20" value="7" step="0.5" oninput="calculateB2C(); calculateBlended();">
+                            <span class="range-value" id="b2c_clip_display">7%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Average Jobs Completed per Month</label>
+                        <input type="number" id="b2c_jobs_per_month" value="12" step="1" oninput="calculateB2C(); calculateBlended();">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Average Job Value ($)</label>
+                        <input type="number" id="b2c_job_value" value="450" step="50" oninput="calculateB2C(); calculateBlended();">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Tenure (Months)</label>
+                        <input type="number" id="b2c_tenure" value="3" step="1" oninput="calculateB2C(); calculateBlended();">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Onboarding Period (Weeks)</label>
+                        <input type="number" id="b2c_onboarding_weeks" value="3" step="1" min="0" oninput="calculateB2C(); calculateBlended();">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Creators Acquired per Month</label>
+                        <input type="number" id="b2c_acq_per_month" value="100" step="10" oninput="calculateB2C(); calculateBlended();">
+                    </div>
+                </div>
+                
+                <div class="output-section">
+                    <h2>B2C Outputs (Per Creator)</h2>
+                    
+                    <div class="metric positive">
+                        <div class="metric-label">Clip Revenue (Lifetime)</div>
+                        <div class="metric-value" id="b2c_clip_revenue">$1,134</div>
+                        <div class="metric-subtext" id="b2c_clip_subtext">7% of earnings over 3 mo tenure</div>
+                    </div>
+                    
+                    <div class="metric positive">
+                        <div class="metric-label">Total LTV</div>
+                        <div class="metric-value" id="b2c_ltv">$1,633</div>
+                        <div class="metric-subtext">Entry + Clip</div>
+                    </div>
+                    
+                    <div class="metric neutral">
+                        <div class="metric-label">Lifetime ROAS</div>
+                        <div class="metric-value" id="b2c_roas">3.63x</div>
+                        <div class="metric-subtext">LTV ÷ CAC</div>
+                    </div>
+                    
+                    <div class="metric">
+                        <div class="metric-label">Day 1 Margin</div>
+                        <div class="metric-value" id="b2c_day1_margin">0.18%</div>
+                        <div class="metric-subtext">(Entry - CAC) ÷ Entry</div>
+                    </div>
+                    
+                    <div class="metric">
+                        <div class="metric-label">Day 30 Margin</div>
+                        <div class="metric-value" id="b2c_day30_margin">23.4%</div>
+                        <div class="metric-subtext">After onboarding + 1 month</div>
+                    </div>
+                    
+                    <div class="metric">
+                        <div class="metric-label">Day 60 Margin</div>
+                        <div class="metric-value" id="b2c_day60_margin">46.6%</div>
+                        <div class="metric-subtext">After onboarding + 2 months</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chart-container full-width">
+                <h3>Monthly Profitability % (B2C) - Cumulative Creators (Accounting for Onboarding)</h3>
+                <table class="monthly-table">
+                    <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th>Cumulative Creators</th>
+                            <th>Creators Earning</th>
+                            <th>Monthly Entry Rev</th>
+                            <th>Monthly Clip Rev</th>
+                            <th>Total Monthly Rev</th>
+                            <th>Monthly CAC</th>
+                            <th>Net Profit</th>
+                            <th>Net Margin %</th>
+                        </tr>
+                    </thead>
+                    <tbody id="b2c_monthly_table">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- B2B TAB -->
+        <div id="b2b" class="tab-content">
+            <div class="calculator-grid">
+                <div class="input-section">
+                    <h2>B2B Brand Inputs</h2>
+                    
+                    <div class="input-group">
+                        <label>Entry Fee ($)</label>
+                        <input type="number" id="b2b_entry_fee" value="2000" step="100" oninput="calculateB2B(); calculateBlended();">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>CAC - Brand Acquisition ($)</label>
+                        <input type="number" id="b2b_cac" value="1000" step="50" oninput="calculateB2B(); calculateBlended();">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>SaaS Monthly Fee ($)</label>
+                        <input type="number" id="b2b_saas_fee" value="199" step="50" oninput="calculateB2B(); calculateBlended();">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Brand Tenure (Months)</label>
+                        <input type="number" id="b2b_tenure" value="3" step="1" oninput="calculateB2B(); calculateBlended();">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Marketplace Clip - Brand Surcharge (%)</label>
+                        <div class="range-display">
+                            <input type="range" id="b2b_brand_clip_pct" min="0" max="20" value="7" step="0.5" oninput="calculateB2B(); calculateBlended();">
+                            <span class="range-value" id="b2b_brand_clip_display">7%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Average Job Value ($)</label>
+                        <input type="number" id="b2b_job_value" value="450" step="50" oninput="calculateB2B(); calculateBlended();">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Jobs per Brand per Month</label>
+                        <input type="number" id="b2b_jobs_per_month" value="12" step="1" oninput="calculateB2B(); calculateBlended();">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Brands Acquired per Month</label>
+                        <input type="number" id="b2b_acq_per_month" value="50" step="5" oninput="calculateB2B(); calculateBlended();">
+                    </div>
+                </div>
+                
+                <div class="input-section">
+                    <h2>B2B Consulting (Optional)</h2>
+                    
+                    <div class="input-group">
+                        <label>Enable Consulting Model?</label>
+                        <div class="toggle-group">
+                            <button class="toggle-btn active" onclick="toggleB2BConsulting(false)">No</button>
+                            <button class="toggle-btn" onclick="toggleB2BConsulting(true)">Yes</button>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group greyed-out" id="b2b_consulting_group">
+                        <label>Consulting Monthly Fee ($)</label>
+                        <input type="number" id="b2b_consulting_fee" value="1500" step="100" oninput="calculateB2B(); calculateBlended();" disabled>
+                    </div>
+                    
+                    <div class="input-group greyed-out" id="b2b_consulting_adoption_group">
+                        <label>Consulting Adoption Rate (% of SaaS users)</label>
+                        <div class="range-display">
+                            <input type="range" id="b2b_consulting_adoption" min="0" max="100" value="10" step="5" oninput="calculateB2B(); calculateBlended();" disabled>
+                            <span class="range-value" id="b2b_consulting_adoption_display">10%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="calculator-grid">
+                <div class="output-section full-width">
+                    <h2>B2B Outputs (Per Brand, Average)</h2>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+                        <div class="metric positive">
+                            <div class="metric-label">Entry Fee Revenue</div>
+                            <div class="metric-value" id="b2b_entry_revenue">$2,000</div>
+                            <div class="metric-subtext">One-time</div>
+                        </div>
+                        
+                        <div class="metric positive">
+                            <div class="metric-label">SaaS Revenue (Lifetime)</div>
+                            <div class="metric-value" id="b2b_saas_revenue">$597</div>
+                            <div class="metric-subtext" id="b2b_saas_subtext">$199/mo × 3 mo</div>
+                        </div>
+                        
+                        <div class="metric positive">
+                            <div class="metric-label">Consulting Revenue (Lifetime)</div>
+                            <div class="metric-value" id="b2b_consulting_revenue">$0</div>
+                            <div class="metric-subtext">If adopted</div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 20px;">
+                        <div class="metric positive">
+                            <div class="metric-label">Marketplace Clip Revenue</div>
+                            <div class="metric-value" id="b2b_clip_revenue">$1,134</div>
+                            <div class="metric-subtext" id="b2b_clip_subtext">7% of job value</div>
+                        </div>
+                        
+                        <div class="metric positive">
+                            <div class="metric-label">Total LTV</div>
+                            <div class="metric-value" id="b2b_ltv">$3,731</div>
+                            <div class="metric-subtext">All revenue streams</div>
+                        </div>
+                        
+                        <div class="metric neutral">
+                            <div class="metric-label">Lifetime ROAS</div>
+                            <div class="metric-value" id="b2b_roas">3.73x</div>
+                            <div class="metric-subtext">LTV ÷ CAC</div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 20px;">
+                        <div class="metric">
+                            <div class="metric-label">Day 1 Margin</div>
+                            <div class="metric-value" id="b2b_day1_margin">50%</div>
+                            <div class="metric-subtext">(Entry - CAC) ÷ Entry</div>
+                        </div>
+                        
+                        <div class="metric">
+                            <div class="metric-label">Day 30 Margin</div>
+                            <div class="metric-value" id="b2b_day30_margin">65%</div>
+                            <div class="metric-subtext">After 1 month</div>
+                        </div>
+                        
+                        <div class="metric">
+                            <div class="metric-label">Day 60 Margin</div>
+                            <div class="metric-value" id="b2b_day60_margin">75%</div>
+                            <div class="metric-subtext">After 2 months</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chart-container full-width">
+                <h3>Monthly Profitability % (B2B) - Cumulative Brands</h3>
+                <table class="monthly-table">
+                    <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th>Cumulative Brands</th>
+                            <th>Monthly Entry Rev</th>
+                            <th>Monthly SaaS Rev</th>
+                            <th>Monthly Consulting Rev</th>
+                            <th>Monthly Clip Rev</th>
+                            <th>Total Monthly Rev</th>
+                            <th>Monthly CAC</th>
+                            <th>Net Profit</th>
+                            <th>Net Margin %</th>
+                        </tr>
+                    </thead>
+                    <tbody id="b2b_monthly_table">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- BLENDED TAB -->
+        <div id="blended" class="tab-content">
+            <div class="calculator-grid full-width">
+                <div class="output-section full-width">
+                    <h2>Blended Unit Economics (4 Month Projection)</h2>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px;">
+                        <div class="metric positive">
+                            <div class="metric-label">Total B2C Revenue</div>
+                            <div class="metric-value" id="blend_b2c_revenue">$548.44K</div>
+                            <div class="metric-subtext">Entry + Clip</div>
+                        </div>
+                        
+                        <div class="metric positive">
+                            <div class="metric-label">Total B2B Revenue</div>
+                            <div class="metric-value" id="blend_b2b_revenue">$546.20K</div>
+                            <div class="metric-subtext">Entry + SaaS + Clip</div>
+                        </div>
+                        
+                        <div class="metric positive">
+                            <div class="metric-label">Total Platform Revenue</div>
+                            <div class="metric-value" id="blend_total_revenue">$1.09M</div>
+                            <div class="metric-subtext">Combined</div>
+                        </div>
+                        
+                        <div class="metric positive">
+                            <div class="metric-label">Total Profit</div>
+                            <div class="metric-value" id="blend_total_profit">$715.00K</div>
+                            <div class="metric-subtext">4-Month Total</div>
+                        </div>
+                        
+                        <div class="metric neutral">
+                            <div class="metric-label">Profit Margin %</div>
+                            <div class="metric-value" id="blend_margin">79.9%</div>
+                            <div class="metric-subtext">Net Profit ÷ Revenue</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chart-container full-width">
+                <h3>Monthly Blended Net Profitability % - Cumulative Cohorts</h3>
+                <table class="monthly-table">
+                    <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th>Cumulative Creators</th>
+                            <th>Cumulative Brands</th>
+                            <th>B2C Revenue</th>
+                            <th>B2B Revenue</th>
+                            <th>Total Revenue</th>
+                            <th>B2C CAC</th>
+                            <th>B2B CAC</th>
+                            <th>Total CAC</th>
+                            <th>Net Profit</th>
+                            <th>Net Margin %</th>
+                        </tr>
+                    </thead>
+                    <tbody id="blended_monthly_table">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let b2bConsultingEnabled = false;
+        
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+            
+            if (tabId === 'blended') {
+                calculateBlended();
+            }
+        }
+        
+        function toggleB2BConsulting(enabled) {
+            b2bConsultingEnabled = enabled;
+            const buttons = document.querySelectorAll('#b2b .toggle-btn');
+            buttons[0].classList.toggle('active', !enabled);
+            buttons[1].classList.toggle('active', enabled);
+            
+            const consultingGroup = document.getElementById('b2b_consulting_group');
+            const adoptionGroup = document.getElementById('b2b_consulting_adoption_group');
+            const consultingInput = document.getElementById('b2b_consulting_fee');
+            const adoptionInput = document.getElementById('b2b_consulting_adoption');
+            
+            if (enabled) {
+                consultingGroup.classList.remove('greyed-out');
+                adoptionGroup.classList.remove('greyed-out');
+                consultingInput.disabled = false;
+                adoptionInput.disabled = false;
+            } else {
+                consultingGroup.classList.add('greyed-out');
+                adoptionGroup.classList.add('greyed-out');
+                consultingInput.disabled = true;
+                adoptionInput.disabled = true;
+            }
+            
+            calculateB2B();
+            calculateBlended();
+        }
+        
+        function formatCurrency(num) {
+            if (num >= 1000000) {
+                return '$' + (num / 1000000).toFixed(2) + 'M';
+            } else if (num >= 1000) {
+                return '$' + (num / 1000).toFixed(2) + 'K';
+            }
+            return '$' + num.toFixed(2);
+        }
+        
+        function calculateB2C() {
+            const entryFee = parseFloat(document.getElementById('b2c_entry_fee').value) || 0;
+            const clipPct = parseFloat(document.getElementById('b2c_clip_pct').value) || 0;
+            const jobValue = parseFloat(document.getElementById('b2c_job_value').value) || 0;
+            const jobsPerMonth = parseFloat(document.getElementById('b2c_jobs_per_month').value) || 0;
+            const tenure = parseFloat(document.getElementById('b2c_tenure').value) || 0;
+            const cac = parseFloat(document.getElementById('b2c_cac').value) || 0;
+            const onboardingWeeks = parseFloat(document.getElementById('b2c_onboarding_weeks').value) || 0;
+            const acqPerMonth = parseFloat(document.getElementById('b2c_acq_per_month').value) || 0;
+            
+            // Update slider display
+            document.getElementById('b2c_clip_display').textContent = clipPct + '%';
+            
+            // Calculate per-creator metrics
+            const monthlyClip = jobsPerMonth * jobValue * (clipPct / 100);
+            const lifetimeClip = monthlyClip * tenure;
+            const ltv = entryFee + lifetimeClip;
+            const roas = cac > 0 ? ltv / cac : 0;
+            
+            // Day margins
+            const day1Margin = entryFee > 0 ? ((entryFee - cac) / entryFee) * 100 : 0;
+            const day30Revenue = entryFee + monthlyClip;
+            const day30Margin = day30Revenue > 0 ? ((day30Revenue - cac) / day30Revenue) * 100 : 0;
+            const day60Revenue = entryFee + (monthlyClip * 2);
+            const day60Margin = day60Revenue > 0 ? ((day60Revenue - cac) / day60Revenue) * 100 : 0;
+            
+            // Update outputs
+            document.getElementById('b2c_clip_revenue').textContent = formatCurrency(lifetimeClip);
+            document.getElementById('b2c_clip_subtext').textContent = clipPct + '% of earnings over ' + tenure + ' mo tenure';
+            document.getElementById('b2c_ltv').textContent = formatCurrency(ltv);
+            document.getElementById('b2c_roas').textContent = roas.toFixed(2) + 'x';
+            document.getElementById('b2c_day1_margin').textContent = day1Margin.toFixed(2) + '%';
+            document.getElementById('b2c_day30_margin').textContent = day30Margin.toFixed(2) + '%';
+            document.getElementById('b2c_day60_margin').textContent = day60Margin.toFixed(2) + '%';
+            
+            // Generate monthly table
+            generateB2CMonthlyTable(entryFee, monthlyClip, cac, acqPerMonth, tenure, onboardingWeeks);
+        }
+        
+        function generateB2CMonthlyTable(entryFee, monthlyClip, cac, acqPerMonth, tenure, onboardingWeeks) {
+            const tbody = document.getElementById('b2c_monthly_table');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            
+            const onboardingMonths = Math.ceil(onboardingWeeks / 4);
+            
+            for (let month = 1; month <= 4; month++) {
+                const cumulativeCreators = month * acqPerMonth;
+                
+                // Calculate creators earning (accounting for onboarding)
+                let creatorsEarning = 0;
+                for (let cohort = 1; cohort <= month; cohort++) {
+                    const monthsSinceJoined = month - cohort;
+                    const monthsSinceOnboarding = monthsSinceJoined - onboardingMonths;
+                    if (monthsSinceOnboarding >= 0 && monthsSinceOnboarding < tenure) {
+                        creatorsEarning += acqPerMonth;
+                    }
+                }
+                
+                const monthlyEntryRev = acqPerMonth * entryFee;
+                const monthlyClipRev = creatorsEarning * monthlyClip;
+                const totalMonthlyRev = monthlyEntryRev + monthlyClipRev;
+                const monthlyCAC = acqPerMonth * cac;
+                const netProfit = totalMonthlyRev - monthlyCAC;
+                const netMargin = totalMonthlyRev > 0 ? (netProfit / totalMonthlyRev) * 100 : 0;
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>End of M${month}</td>
+                    <td>${cumulativeCreators}</td>
+                    <td>${creatorsEarning}</td>
+                    <td>${formatCurrency(monthlyEntryRev)}</td>
+                    <td>${formatCurrency(monthlyClipRev)}</td>
+                    <td>${formatCurrency(totalMonthlyRev)}</td>
+                    <td>${formatCurrency(monthlyCAC)}</td>
+                    <td class="${netProfit >= 0 ? 'profit-positive' : 'profit-negative'}">${formatCurrency(netProfit)}</td>
+                    <td class="${netMargin >= 0 ? 'profit-positive' : 'profit-negative'}">${netMargin.toFixed(1)}%</td>
+                `;
+                tbody.appendChild(row);
+            }
+        }
+        
+        function calculateB2B() {
+            const entryFee = parseFloat(document.getElementById('b2b_entry_fee').value) || 0;
+            const saasFee = parseFloat(document.getElementById('b2b_saas_fee').value) || 0;
+            const tenure = parseFloat(document.getElementById('b2b_tenure').value) || 0;
+            const brandClipPct = parseFloat(document.getElementById('b2b_brand_clip_pct').value) || 0;
+            const jobValue = parseFloat(document.getElementById('b2b_job_value').value) || 0;
+            const jobsPerMonth = parseFloat(document.getElementById('b2b_jobs_per_month').value) || 0;
+            const cac = parseFloat(document.getElementById('b2b_cac').value) || 0;
+            const acqPerMonth = parseFloat(document.getElementById('b2b_acq_per_month').value) || 0;
+            const consultingFee = parseFloat(document.getElementById('b2b_consulting_fee').value) || 0;
+            const consultingAdoption = parseFloat(document.getElementById('b2b_consulting_adoption').value) || 0;
+            
+            // Update slider displays
+            document.getElementById('b2b_brand_clip_display').textContent = brandClipPct + '%';
+            document.getElementById('b2b_consulting_adoption_display').textContent = consultingAdoption + '%';
+            
+            // Calculate per-brand metrics
+            const monthlyClip = jobsPerMonth * jobValue * (brandClipPct / 100);
+            const lifetimeClip = monthlyClip * tenure;
+            const lifetimeSaaS = saasFee * (tenure - 1); // First month waived due to entry fee
+            const lifetimeConsulting = b2bConsultingEnabled ? consultingFee * tenure * (consultingAdoption / 100) : 0;
+            const ltv = entryFee + lifetimeSaaS + lifetimeClip + lifetimeConsulting;
+            const roas = cac > 0 ? ltv / cac : Infinity;
+            
+            // Day margins (brands start generating clip from day 1)
+            const day1Revenue = entryFee + monthlyClip;
+            const day1Margin = day1Revenue > 0 ? ((day1Revenue - cac) / day1Revenue) * 100 : 0;
+            const day30Revenue = entryFee + saasFee + (monthlyClip * 2);
+            const day30Margin = day30Revenue > 0 ? ((day30Revenue - cac) / day30Revenue) * 100 : 0;
+            const day60Revenue = entryFee + (saasFee * 2) + (monthlyClip * 3);
+            const day60Margin = day60Revenue > 0 ? ((day60Revenue - cac) / day60Revenue) * 100 : 0;
+            
+            // Update outputs
+            document.getElementById('b2b_entry_revenue').textContent = formatCurrency(entryFee);
+            document.getElementById('b2b_saas_revenue').textContent = formatCurrency(lifetimeSaaS);
+            document.getElementById('b2b_saas_subtext').textContent = '$' + saasFee + '/mo × ' + (tenure - 1) + ' mo (1st mo waived)';
+            document.getElementById('b2b_consulting_revenue').textContent = formatCurrency(lifetimeConsulting);
+            document.getElementById('b2b_clip_revenue').textContent = formatCurrency(lifetimeClip);
+            document.getElementById('b2b_clip_subtext').textContent = brandClipPct + '% of job value';
+            document.getElementById('b2b_ltv').textContent = formatCurrency(ltv);
+            document.getElementById('b2b_roas').textContent = roas === Infinity ? '∞' : roas.toFixed(2) + 'x';
+            document.getElementById('b2b_day1_margin').textContent = day1Margin.toFixed(2) + '%';
+            document.getElementById('b2b_day30_margin').textContent = day30Margin.toFixed(2) + '%';
+            document.getElementById('b2b_day60_margin').textContent = day60Margin.toFixed(2) + '%';
+            
+            // Generate monthly table
+            generateB2BMonthlyTable(entryFee, saasFee, monthlyClip, cac, acqPerMonth, tenure, consultingFee, consultingAdoption);
+        }
+        
+        function generateB2BMonthlyTable(entryFee, saasFee, monthlyClip, cac, acqPerMonth, tenure, consultingFee, consultingAdoption) {
+            const tbody = document.getElementById('b2b_monthly_table');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            
+            for (let month = 1; month <= 4; month++) {
+                const cumulativeBrands = month * acqPerMonth;
+                
+                // Entry revenue (new brands this month)
+                const monthlyEntryRev = acqPerMonth * entryFee;
+                
+                // SaaS revenue (prior cohorts only - first month waived)
+                let monthlySaaSRev = 0;
+                for (let cohort = 1; cohort < month; cohort++) {
+                    const monthsSinceJoined = month - cohort;
+                    if (monthsSinceJoined > 0 && monthsSinceJoined <= tenure) {
+                        monthlySaaSRev += acqPerMonth * saasFee;
+                    }
+                }
+                
+                // Consulting revenue (prior cohorts only, with adoption rate)
+                let monthlyConsultingRev = 0;
+                if (b2bConsultingEnabled) {
+                    for (let cohort = 1; cohort < month; cohort++) {
+                        const monthsSinceJoined = month - cohort;
+                        if (monthsSinceJoined > 0 && monthsSinceJoined <= tenure) {
+                            monthlyConsultingRev += acqPerMonth * consultingFee * (consultingAdoption / 100);
+                        }
+                    }
+                }
+                
+                // Clip revenue (ALL cohorts including new ones - brands generate clip from day 1)
+                let monthlyClipRev = 0;
+                for (let cohort = 1; cohort <= month; cohort++) {
+                    const monthsSinceJoined = month - cohort;
+                    if (monthsSinceJoined < tenure) {
+                        monthlyClipRev += acqPerMonth * monthlyClip;
+                    }
+                }
+                
+                const totalMonthlyRev = monthlyEntryRev + monthlySaaSRev + monthlyConsultingRev + monthlyClipRev;
+                const monthlyCAC = acqPerMonth * cac;
+                const netProfit = totalMonthlyRev - monthlyCAC;
+                const netMargin = totalMonthlyRev > 0 ? (netProfit / totalMonthlyRev) * 100 : 0;
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>End of M${month}</td>
+                    <td>${cumulativeBrands}</td>
+                    <td>${formatCurrency(monthlyEntryRev)}</td>
+                    <td>${formatCurrency(monthlySaaSRev)}</td>
+                    <td>${formatCurrency(monthlyConsultingRev)}</td>
+                    <td>${formatCurrency(monthlyClipRev)}</td>
+                    <td>${formatCurrency(totalMonthlyRev)}</td>
+                    <td>${formatCurrency(monthlyCAC)}</td>
+                    <td class="${netProfit >= 0 ? 'profit-positive' : 'profit-negative'}">${formatCurrency(netProfit)}</td>
+                    <td class="${netMargin >= 0 ? 'profit-positive' : 'profit-negative'}">${netMargin.toFixed(1)}%</td>
+                `;
+                tbody.appendChild(row);
+            }
+        }
+        
+        function calculateBlended() {
+            // Get all inputs from B2C tab
+            const b2cEntryFee = parseFloat(document.getElementById('b2c_entry_fee').value) || 0;
+            const b2cClipPct = parseFloat(document.getElementById('b2c_clip_pct').value) || 0;
+            const b2cJobValue = parseFloat(document.getElementById('b2c_job_value').value) || 0;
+            const b2cJobsPerMonth = parseFloat(document.getElementById('b2c_jobs_per_month').value) || 0;
+            const b2cTenure = parseFloat(document.getElementById('b2c_tenure').value) || 0;
+            const b2cCAC = parseFloat(document.getElementById('b2c_cac').value) || 0;
+            const b2cOnboardingWeeks = parseFloat(document.getElementById('b2c_onboarding_weeks').value) || 0;
+            const b2cAcqPerMonth = parseFloat(document.getElementById('b2c_acq_per_month').value) || 0;
+            
+            // Get all inputs from B2B tab
+            const b2bEntryFee = parseFloat(document.getElementById('b2b_entry_fee').value) || 0;
+            const b2bSaasFee = parseFloat(document.getElementById('b2b_saas_fee').value) || 0;
+            const b2bTenure = parseFloat(document.getElementById('b2b_tenure').value) || 0;
+            const b2bBrandClipPct = parseFloat(document.getElementById('b2b_brand_clip_pct').value) || 0;
+            const b2bJobValue = parseFloat(document.getElementById('b2b_job_value').value) || 0;
+            const b2bJobsPerMonth = parseFloat(document.getElementById('b2b_jobs_per_month').value) || 0;
+            const b2bCAC = parseFloat(document.getElementById('b2b_cac').value) || 0;
+            const b2bAcqPerMonth = parseFloat(document.getElementById('b2b_acq_per_month').value) || 0;
+            const b2bConsultingFee = parseFloat(document.getElementById('b2b_consulting_fee').value) || 0;
+            const b2bConsultingAdoption = parseFloat(document.getElementById('b2b_consulting_adoption').value) || 0;
+            
+            // Calculate monthly metrics
+            const b2cMonthlyClip = b2cJobsPerMonth * b2cJobValue * (b2cClipPct / 100);
+            const b2bMonthlyClip = b2bJobsPerMonth * b2bJobValue * (b2bBrandClipPct / 100);
+            const b2cOnboardingMonths = Math.ceil(b2cOnboardingWeeks / 4);
+            
+            let totalB2CRevenue = 0;
+            let totalB2BRevenue = 0;
+            let totalB2CCAC = 0;
+            let totalB2BCAC = 0;
+            
+            // Generate blended monthly table
+            const tbody = document.getElementById('blended_monthly_table');
+            if (tbody) {
+                tbody.innerHTML = '';
+                
+                for (let month = 1; month <= 4; month++) {
+                    const cumulativeCreators = month * b2cAcqPerMonth;
+                    const cumulativeBrands = month * b2bAcqPerMonth;
+                    
+                    // B2C Revenue
+                    let creatorsEarning = 0;
+                    for (let cohort = 1; cohort <= month; cohort++) {
+                        const monthsSinceJoined = month - cohort;
+                        const monthsSinceOnboarding = monthsSinceJoined - b2cOnboardingMonths;
+                        if (monthsSinceOnboarding >= 0 && monthsSinceOnboarding < b2cTenure) {
+                            creatorsEarning += b2cAcqPerMonth;
+                        }
+                    }
+                    const b2cEntryRev = b2cAcqPerMonth * b2cEntryFee;
+                    const b2cClipRev = creatorsEarning * b2cMonthlyClip;
+                    const b2cMonthlyRev = b2cEntryRev + b2cClipRev;
+                    
+                    // B2B Revenue
+                    const b2bEntryRev = b2bAcqPerMonth * b2bEntryFee;
+                    
+                    let b2bSaaSRev = 0;
+                    for (let cohort = 1; cohort < month; cohort++) {
+                        const monthsSinceJoined = month - cohort;
+                        if (monthsSinceJoined > 0 && monthsSinceJoined <= b2bTenure) {
+                            b2bSaaSRev += b2bAcqPerMonth * b2bSaasFee;
+                        }
+                    }
+                    
+                    let b2bConsultingRev = 0;
+                    if (b2bConsultingEnabled) {
+                        for (let cohort = 1; cohort < month; cohort++) {
+                            const monthsSinceJoined = month - cohort;
+                            if (monthsSinceJoined > 0 && monthsSinceJoined <= b2bTenure) {
+                                b2bConsultingRev += b2bAcqPerMonth * b2bConsultingFee * (b2bConsultingAdoption / 100);
+                            }
+                        }
+                    }
+                    
+                    let b2bClipRev = 0;
+                    for (let cohort = 1; cohort <= month; cohort++) {
+                        const monthsSinceJoined = month - cohort;
+                        if (monthsSinceJoined < b2bTenure) {
+                            b2bClipRev += b2bAcqPerMonth * b2bMonthlyClip;
+                        }
+                    }
+                    
+                    const b2bMonthlyRev = b2bEntryRev + b2bSaaSRev + b2bConsultingRev + b2bClipRev;
+                    
+                    // CAC
+                    const b2cMonthlyCAC = b2cAcqPerMonth * b2cCAC;
+                    const b2bMonthlyCAC = b2bAcqPerMonth * b2bCAC;
+                    
+                    // Totals
+                    const totalMonthlyRev = b2cMonthlyRev + b2bMonthlyRev;
+                    const totalMonthlyCAC = b2cMonthlyCAC + b2bMonthlyCAC;
+                    const netProfit = totalMonthlyRev - totalMonthlyCAC;
+                    const netMargin = totalMonthlyRev > 0 ? (netProfit / totalMonthlyRev) * 100 : 0;
+                    
+                    // Accumulate totals
+                    totalB2CRevenue += b2cMonthlyRev;
+                    totalB2BRevenue += b2bMonthlyRev;
+                    totalB2CCAC += b2cMonthlyCAC;
+                    totalB2BCAC += b2bMonthlyCAC;
+                    
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>End of M${month}</td>
+                        <td>${cumulativeCreators}</td>
+                        <td>${cumulativeBrands}</td>
+                        <td>${formatCurrency(b2cMonthlyRev)}</td>
+                        <td>${formatCurrency(b2bMonthlyRev)}</td>
+                        <td>${formatCurrency(totalMonthlyRev)}</td>
+                        <td>${formatCurrency(b2cMonthlyCAC)}</td>
+                        <td>${formatCurrency(b2bMonthlyCAC)}</td>
+                        <td>${formatCurrency(totalMonthlyCAC)}</td>
+                        <td class="${netProfit >= 0 ? 'profit-positive' : 'profit-negative'}">${formatCurrency(netProfit)}</td>
+                        <td class="${netMargin >= 0 ? 'profit-positive' : 'profit-negative'}">${netMargin.toFixed(1)}%</td>
+                    `;
+                    tbody.appendChild(row);
+                }
+            }
+            
+            // Update summary metrics
+            const totalRevenue = totalB2CRevenue + totalB2BRevenue;
+            const totalCAC = totalB2CCAC + totalB2BCAC;
+            const totalProfit = totalRevenue - totalCAC;
+            const profitMargin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
+            
+            document.getElementById('blend_b2c_revenue').textContent = formatCurrency(totalB2CRevenue);
+            document.getElementById('blend_b2b_revenue').textContent = formatCurrency(totalB2BRevenue);
+            document.getElementById('blend_total_revenue').textContent = formatCurrency(totalRevenue);
+            document.getElementById('blend_total_profit').textContent = formatCurrency(totalProfit);
+            document.getElementById('blend_margin').textContent = profitMargin.toFixed(1) + '%';
+        }
+        
+        // Initialize on page load
+        window.addEventListener('load', function() {
+            calculateB2C();
+            calculateB2B();
+            calculateBlended();
+        });
+    </script>
+</body>
+</html>
